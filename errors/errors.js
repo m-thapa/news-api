@@ -1,5 +1,4 @@
 exports.handlePathErr = (req, res) => {
-  console.log("yaha chu ma");
   res.status(404).send({ msg: "Invalid path" });
 };
 
