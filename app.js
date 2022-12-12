@@ -6,7 +6,7 @@ const { getTopics } = require("./controllers/topics.controller");
 const { handlePathErr, handleServerErrors } = require("./errors/errors.js");
 
 //handle requests
-app.use("/api/topics", getTopics);
+app.get("/api/topics", getTopics);
 
 app.all("*", handlePathErr);
 
