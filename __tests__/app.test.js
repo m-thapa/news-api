@@ -19,7 +19,7 @@ describe("Error 404: path not found", () => {
 });
 
 describe("GET /api/topics", () => {
-  it("should respond with status 200: and returns an array of topic objects", () => {
+  it("should respond with status 200: and return an array of topic objects", () => {
     return request(app)
       .get("/api/topics")
       .expect(200)
@@ -32,6 +32,40 @@ describe("GET /api/topics", () => {
             description: expect.any(String),
           });
         });
+      });
+  });
+});
+
+describe("GET /api/articles", () => {
+  it("should respond with status 200 and return an articles array with author, title, article_id, topic, create_at, votes, comment_count and article_id", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(Array.isArray(articles)).toBe(true);
+        expect(articles).toHaveLength(12);
+        articles.forEach((article) => {
+          expect(article).toEqual(
+            expect.objectContaining({
+              author: expect.any(String),
+              title: expect.any(String),
+              article_id: expect.any(Number),
+              topic: expect.any(String),
+              created_at: expect.any(String),
+              votes: expect.any(Number),
+              comment_count: expect.any(String),
+            })
+          );
+        });
+      });
+  });
+
+  it("should respond with status 200 and return sorted articles by date in descending order ", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("created_at", { descending: true });
       });
   });
 });
