@@ -1,3 +1,4 @@
+const { expect } = require("@jest/globals");
 const request = require("supertest");
 const app = require("../app");
 const db = require("../db/connection.js");
@@ -66,6 +67,26 @@ describe("GET /api/articles", () => {
       .expect(200)
       .then(({ body: { articles } }) => {
         expect(articles).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+});
+
+describe("GET /api/articles/:article_id", () => {
+  it("should respond with status 200 and return an article object, with article_id, author, title,  body, topic, created_at and votes", () => {
+    const article_id = 1;
+    return request(app)
+      .get(`/api/articles/${article_id}`)
+      .expect(200)
+      .then(({ body: { article } }) => {
+        expect(article).toEqual({
+          article_id: article_id,
+          author: "butter_bridge",
+          title: "Living in the shadow of a great man",
+          body: "I find this existence challenging",
+          topic: "mitch",
+          created_at: expect.any(String),
+          votes: 100,
+        });
       });
   });
 });
