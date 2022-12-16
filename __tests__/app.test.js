@@ -1,4 +1,3 @@
-const { expect } = require("@jest/globals");
 const request = require("supertest");
 const app = require("../app");
 const db = require("../db/connection.js");
@@ -87,6 +86,77 @@ describe("GET /api/articles/:article_id", () => {
           created_at: expect.any(String),
           votes: 100,
         });
+      });
+  });
+});
+
+describe("GET /api/articles/:article_id/comments", () => {
+  it("should respond with status 200 and return an array of comments for the given article_id of which each comment should have comment_id, votes, created_at, author and body", () => {
+    const ARTICLE_ID = 1;
+    return request(app)
+      .get(`/api/articles/${ARTICLE_ID}/comments`)
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toHaveLength(11);
+        comments.forEach((comment) => {
+          expect(comment).toEqual(
+            expect.objectContaining({
+              comment_id: expect.any(Number),
+              votes: expect.any(Number),
+              created_at: expect.any(String),
+              author: expect.any(String),
+              body: expect.any(String),
+            })
+          );
+        });
+      });
+  });
+
+  it("should respond with status 200 and return comments sorted by most recent comments first", () => {
+    const ARTICLE_ID = 1;
+    return request(app)
+      .get(`/api/articles/${ARTICLE_ID}/comments`)
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+  it("should respond with status 200 and return an empty array when given an article that exists but has no comments", () => {
+    const ARTICLE_ID = 12;
+    return request(app)
+      .get(`/api/articles/${ARTICLE_ID}/comments`)
+      .expect(200)
+      .then(({ body: { comments } }) => {
+        expect(comments).toEqual([]);
+      });
+  });
+
+  it("should respond with status 404 and return article id is in valid format but does not exist", () => {
+    const ARTICLE_ID = 9000;
+    return request(app)
+      .get(`/api/articles/${ARTICLE_ID}/comments`)
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("article 9000 does not exist");
+      });
+  });
+  it("should respond with status 400 and return an error message when article_id is an incorrect data type (string)", () => {
+    const ARTICLE_ID = "one";
+    return request(app)
+      .get(`/api/articles/${ARTICLE_ID}/comments`)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it("should respond with status 400 and return error message when article_id is an incorrect data type (negative int)", () => {
+    const ARTICLE_ID = -1;
+    return request(app)
+      .get(`/api/articles/${ARTICLE_ID}/comments`)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad Request");
       });
   });
 });
