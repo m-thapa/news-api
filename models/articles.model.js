@@ -45,4 +45,41 @@ WHERE article_id =$1;`;
     });
 };
 
-module.exports = { selectArticles, selectArticleById };
+const selectArticleIdByComment = (article_id) => {
+  if (parseInt(article_id) < 1) {
+    return Promise.reject({
+      status: 400,
+      msg: "Bad Request",
+    });
+  }
+
+  return db
+    .query(
+      `SELECT comment_id, votes, created_at, author, body FROM comments where article_id = $1 ORDER BY created_at DESC; `,
+      [article_id]
+    )
+    .then(({ rows, rowCount }) => {
+      if (rowCount === 0) {
+        return db
+          .query(`SELECT article_id FROM articles WHERE article_id = $1`, [
+            article_id,
+          ])
+          .then(({ rowCount }) => {
+            if (rowCount === 0) {
+              return Promise.reject({
+                status: 404,
+                msg: `article ${article_id} does not exist`,
+              });
+            }
+            return [];
+          });
+      }
+      return rows;
+    });
+};
+
+module.exports = {
+  selectArticles,
+  selectArticleById,
+  selectArticleIdByComment,
+};
