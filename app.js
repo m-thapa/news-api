@@ -1,6 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-app.use(cors());
 
 const app = express();
 
@@ -21,6 +20,8 @@ const {
   handlePsqlErr,
   handleCustomErr,
 } = require("./errors/errors.js");
+
+app.use(cors());
 
 //handle requests
 app.get("/api/topics", getTopics);

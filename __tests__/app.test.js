@@ -160,3 +160,97 @@ describe("GET /api/articles/:article_id/comments", () => {
       });
   });
 });
+
+describe("POST /api/articles/:article_id", () => {
+  it("should respond with status 201 and return an object in the form { inc_votes: newVote } with the updated article", () => {
+    const article_id = 2;
+    const newComment = {
+      username: "butter_bridge",
+      body: "Loren ipsum",
+    };
+    return request(app)
+      .post(`/api/articles/${article_id}/comments`)
+      .send(newComment)
+      .expect(201)
+      .then(({ body: { comment } }) => {
+        expect(comment).toBeInstanceOf(Object);
+        expect.objectContaining({
+          comment_id: 19,
+          author: "butter_bridge",
+          body: "Loren ipsum",
+          article_id: `${article_id}`,
+          votes: expect.any(Number),
+          created_at: expect.any(String),
+        });
+      });
+  });
+  it("should respond with 400: missing a 'body' key from the client's request", () => {
+    const article_id = 2;
+    const newComment = {
+      username: "butter_bridge",
+    };
+    return request(app)
+      .post(`/api/articles/${article_id}/comments`)
+      .send(newComment)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad Request");
+      });
+  });
+  it("should respond with 404: non-existent article in the database", () => {
+    const article_id = 999;
+    const newComment = {
+      username: "butter_bridge",
+      body: "Loren ipsum",
+    };
+    return request(app)
+      .post(`/api/articles/${article_id}/comments`)
+      .send(newComment)
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe(`Article ${article_id} Is Not In The Database`);
+      });
+  });
+  it("should respond with 404: username requested by the client is not in the database", () => {
+    const article_id = 2;
+    const newComment = {
+      username: "peter_griffin",
+      body: "Loren ipsum",
+    };
+    return request(app)
+      .post(`/api/articles/${article_id}/comments`)
+      .send(newComment)
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Username Not Found");
+      });
+  });
+  it("should respond with 400: invalid data type requested by the client (string)", () => {
+    const article_id = "banana";
+    const newComment = {
+      username: "butter_bridge",
+      body: "Loren Ipsum",
+    };
+    return request(app)
+      .post(`/api/articles/${article_id}/comments`)
+      .send(newComment)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+  // it("should respond with 400: invalid data type requested by the client (negative integer)", () => {
+  //   const article_id = -12;
+  //   const newComment = {
+  //     username: "butter_bridge",
+  //     body: "Loren Ipsum",
+  //   };
+  //   return request(app)
+  //     .post(`/api/articles/${article_id}/comments`)
+  //     .send(newComment)
+  //     .expect(400)
+  //     .then(({ body: { msg } }) => {
+  //       expect(msg).toBe("Bad request");
+  //     });
+  // });
+});
