@@ -1,8 +1,8 @@
 const express = require("express");
 const cors = require("cors");
-
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 
 const { getTopics } = require("./controllers/topics.controller");
@@ -12,6 +12,7 @@ const {
   getArticleById,
   getArticleIdByComment,
   postComment,
+  patchArticlesById,
 } = require("./controllers/articles.controller");
 
 const {
@@ -20,8 +21,7 @@ const {
   handlePsqlErr,
   handleCustomErr,
 } = require("./errors/errors.js");
-
-app.use(cors());
+const { getUsers } = require("./controllers/users.controller");
 
 //handle requests
 app.get("/api/topics", getTopics);
@@ -33,6 +33,10 @@ app.get("/api/articles/:article_id", getArticleById);
 app.get("/api/articles/:article_id/comments", getArticleIdByComment);
 
 app.post("/api/articles/:article_id/comments", postComment);
+
+app.patch("/api/articles/:article_id", patchArticlesById);
+
+app.get("/api/users", getUsers);
 
 // handle path errors
 app.all("*", handlePathErr);

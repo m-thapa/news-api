@@ -91,7 +91,7 @@ describe("GET /api/articles/:article_id", () => {
 });
 
 describe("GET /api/articles/:article_id/comments", () => {
-  it("should respond with status 200 and return an array of comments for the given article_id of which each comment should have comment_id, votes, created_at, author and body", () => {
+  it("should respond with status 200 and return an article object including comment count", () => {
     const ARTICLE_ID = 1;
     return request(app)
       .get(`/api/articles/${ARTICLE_ID}/comments`)
@@ -156,7 +156,7 @@ describe("GET /api/articles/:article_id/comments", () => {
       .get(`/api/articles/${ARTICLE_ID}/comments`)
       .expect(400)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("Bad Request");
+        expect(msg).toBe("Bad request");
       });
   });
 });
@@ -194,7 +194,7 @@ describe("POST /api/articles/:article_id", () => {
       .send(newComment)
       .expect(400)
       .then(({ body: { msg } }) => {
-        expect(msg).toBe("Bad Request");
+        expect(msg).toBe("Bad request");
       });
   });
   it("should respond with 404: non-existent article in the database", () => {
@@ -239,18 +239,167 @@ describe("POST /api/articles/:article_id", () => {
         expect(msg).toBe("Bad request");
       });
   });
-  // it("should respond with 400: invalid data type requested by the client (negative integer)", () => {
-  //   const article_id = -12;
-  //   const newComment = {
-  //     username: "butter_bridge",
-  //     body: "Loren Ipsum",
-  //   };
-  //   return request(app)
-  //     .post(`/api/articles/${article_id}/comments`)
-  //     .send(newComment)
-  //     .expect(400)
-  //     .then(({ body: { msg } }) => {
-  //       expect(msg).toBe("Bad request");
-  //     });
-  // });
+  it("should respond with 400: invalid data type requested by the client (negative integer)", () => {
+    const article_id = -12;
+    const newComment = {
+      username: "butter_bridge",
+      body: "Loren Ipsum",
+    };
+    return request(app)
+      .post(`/api/articles/${article_id}/comments`)
+      .send(newComment)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+});
+
+describe('PATCH /api/articles/:article_id"', () => {
+  it("should return status 200: and return the updated article", () => {
+    const article_id = 1;
+    const newVote = 67;
+    const inc = { inc_votes: newVote };
+    return request(app)
+      .patch(`/api/articles/${article_id}`)
+      .send(inc)
+      .expect(200)
+      .then(({ body: { article } }) => {
+        expect(article).toBeInstanceOf(Object);
+        expect.objectContaining({
+          article_id: `${article_id}`,
+          title: expect.any(String),
+          topic: expect.any(String),
+          author: expect.any(String),
+          body: expect.any(String),
+          created_at: expect.any(String),
+          votes: 167,
+        });
+      });
+  });
+  it("should respond with status 200: and decrement votes by the given amount for a certain article requested by the client", () => {
+    const article_id = 1;
+    const newVote = -67;
+    const inc = { inc_votes: newVote };
+    return request(app)
+      .patch(`/api/articles/${article_id}`)
+      .send(inc)
+      .expect(200)
+      .then(({ body: { article } }) => {
+        expect(article).toBeInstanceOf(Object);
+        expect.objectContaining({
+          article_id: `${article_id}`,
+          title: expect.any(String),
+          topic: expect.any(String),
+          author: expect.any(String),
+          body: expect.any(String),
+          created_at: expect.any(String),
+          votes: 33,
+        });
+      });
+  });
+  it("should respond with status 404: and return article does not exist in database", () => {
+    const article_id = 999;
+    const newVote = 28;
+    const inc = { inc_votes: newVote };
+    return request(app)
+      .patch(`/api/articles/${article_id}`)
+      .send(inc)
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Not Found In The Database");
+      });
+  });
+  it("should respond with status 400: and return inc_votes requested by the client is a string", () => {
+    const article_id = 2;
+    const newVote = "banana";
+    const inc = { inc_votes: newVote };
+    return request(app)
+      .patch(`/api/articles/${article_id}`)
+      .send(inc)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+  it("should respond with status 400: and return inc_votes requested is a float", () => {
+    const article_id = 2;
+    const newVote = 89.5;
+    const inc = { inc_votes: newVote };
+    return request(app)
+      .patch(`/api/articles/${article_id}`)
+      .send(inc)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+  it("should respond with status 400: and return invalid article_id requested by the client(string)", () => {
+    const article_id = "banana";
+    const newVote = 28;
+    const inc = { inc_votes: newVote };
+    return request(app)
+      .patch(`/api/articles/${article_id}`)
+      .send(inc)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+  it("should respond with status 400: and return invalid article_id requested by the client(float)", () => {
+    const article_id = 3.5;
+    const newVote = 28;
+    const inc = { inc_votes: newVote };
+    return request(app)
+      .patch(`/api/articles/${article_id}`)
+      .send(inc)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+  it("should respond with status 400: and return missing inc_votes key in the object requested by the client", () => {
+    const article_id = 2;
+    const inc = { noVoteRequested: 45 };
+    return request(app)
+      .patch(`/api/articles/${article_id}`)
+      .send(inc)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+  it("should respond with status 400: and return missing body in the object requested by the client", () => {
+    const article_id = 2;
+    const newVote = {};
+    const inc = { inc_votes: newVote };
+    return request(app)
+      .patch(`/api/articles/${article_id}`)
+      .send(inc)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+});
+
+describe("GET/api/users", () => {
+  it("should respond with status: 200 and return an array of all user objects", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then(({ body: { users } }) => {
+        expect(users).toBeInstanceOf(Array);
+        expect(users).toHaveLength(4);
+        users.forEach((user) => {
+          expect(user).toEqual(
+            expect.objectContaining({
+              username: expect.any(String),
+              name: expect.any(String),
+              avatar_url: expect.any(String),
+            })
+          );
+        });
+      });
+  });
 });

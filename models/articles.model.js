@@ -22,7 +22,7 @@ const selectArticles = () => {
 
 const selectArticleById = (article_id) => {
   if (article_id < 1) {
-    return Promise.reject({ status: 400, msg: "Bad Request" });
+    return Promise.reject({ status: 400, msg: "Bad request" });
   }
 
   let queryStr = `
@@ -49,7 +49,7 @@ const selectArticleIdByComment = (article_id) => {
   if (parseInt(article_id) < 1) {
     return Promise.reject({
       status: 400,
-      msg: "Bad Request",
+      msg: "Bad request",
     });
   }
 
@@ -82,10 +82,10 @@ const insertComment = async (newComment, article_id) => {
   const { username, body } = newComment;
 
   if (!username || !body)
-    return Promise.reject({ status: 400, msg: "Bad Request" });
+    return Promise.reject({ status: 400, msg: "Bad request" });
 
   if (article_id < 1)
-    return Promise.reject({ status: 400, msg: "Bad Request" });
+    return Promise.reject({ status: 400, msg: "Bad request" });
 
   const SQL = `
   SELECT * FROM articles
@@ -119,9 +119,33 @@ const insertComment = async (newComment, article_id) => {
     .then(({ rows }) => rows[0]);
 };
 
+const updateArticles = (article_id, incrementBy) => {
+  if (incrementBy === undefined) {
+    return Promise.reject({ status: 400, msg: "Bad request" });
+  }
+  const queryString = `
+  UPDATE articles
+  SET votes = votes + $1
+  WHERE article_id = $2
+  RETURNING *;`;
+
+  return db
+    .query(queryString, [incrementBy, article_id])
+    .then(({ rows, rowCount }) => {
+      if (rowCount === 0) {
+        return Promise.reject({
+          status: 404,
+          msg: "Not Found In The Database",
+        });
+      }
+      return rows[0];
+    });
+};
+
 module.exports = {
   selectArticles,
   selectArticleById,
   selectArticleIdByComment,
   insertComment,
+  updateArticles,
 };
