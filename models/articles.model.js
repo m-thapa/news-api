@@ -1,6 +1,27 @@
 const db = require("../db/connection");
 
-const selectArticles = () => {
+const selectArticles = (topic, sort_by = "created_at", order = "desc") => {
+  let validSortQuery = [
+    "author",
+    "title",
+    "article_id",
+    "topic",
+    "created_at",
+    "votes",
+    "comment_count",
+  ];
+
+  if (!validSortQuery.includes(sort_by)) {
+    return Promise.reject({ status: 400, msg: "Bad request" });
+  }
+
+  const validOrderQuery = ["asc", "desc"];
+
+  if (!validOrderQuery.includes(order)) {
+    return Promise.reject({ status: 400, msg: "Bad request" });
+  }
+
+  let topicValue = [];
   let queryStr = `
   SELECT 
   articles.author, articles.title, articles.article_id, 
@@ -11,13 +32,19 @@ const selectArticles = () => {
   LEFT JOIN comments 
   ON 
   articles.article_id = comments.article_id
-  GROUP BY
-  articles.article_id 
-  ORDER BY 
-  created_at DESC
-  ;
+  
   `;
-  return db.query(queryStr).then(({ rows }) => rows);
+
+  if (topic !== undefined) {
+    queryStr += `
+    WHERE articles.topic =$1`;
+    topicValue.push(topic);
+  }
+
+  queryStr += `GROUP BY articles.article_id
+  ORDER BY ${sort_by} ${order}`;
+
+  return db.query(queryStr, topicValue).then(({ rows }) => rows);
 };
 
 const selectArticleById = (article_id) => {
@@ -27,22 +54,23 @@ const selectArticleById = (article_id) => {
 
   let queryStr = `
 SELECT 
-article_id, author, title, body, topic, created_at, votes
+articles.article_id, articles.author, articles.title, articles.body, articles.topic, articles.created_at, articles.votes, COUNT(comments.body) AS comment_count
 FROM articles
-WHERE article_id =$1;`;
+LEFT JOIN comments
+ON articles.article_id = comments.article_id
+WHERE articles.article_id =$1
+GROUP BY articles.article_id
+;`;
 
-  return db
-    .query(queryStr, [article_id])
-
-    .then(({ rows, rowCount }) => {
-      if (rowCount === 0) {
-        return Promise.reject({
-          status: 404,
-          msg: "Does not exist in database",
-        });
-      }
-      return rows[0];
-    });
+  return db.query(queryStr, [article_id]).then(({ rows, rowCount }) => {
+    if (rowCount === 0) {
+      return Promise.reject({
+        status: 404,
+        msg: "Does not exist in database",
+      });
+    }
+    return rows[0];
+  });
 };
 
 const selectArticleIdByComment = (article_id) => {
