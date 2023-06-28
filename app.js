@@ -21,9 +21,19 @@ const {
   handlePsqlErr,
   handleCustomErr,
 } = require("./errors/errors.js");
+
 const { getUsers } = require("./controllers/users.controller");
 
+const { deleteComments } = require("./controllers/comments.controller");
+
+const endpoints = require("./endpoints.json");
+
 //handle requests
+
+app.get("/api", (req, res) => {
+  res.status(200).send(endpoints);
+});
+
 app.get("/api/topics", getTopics);
 
 app.get("/api/articles", getArticles);
@@ -37,6 +47,8 @@ app.post("/api/articles/:article_id/comments", postComment);
 app.patch("/api/articles/:article_id", patchArticlesById);
 
 app.get("/api/users", getUsers);
+
+app.delete("/api/comments/:comment_id", deleteComments);
 
 // handle path errors
 app.all("*", handlePathErr);

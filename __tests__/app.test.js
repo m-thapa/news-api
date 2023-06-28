@@ -1,5 +1,6 @@
 const request = require("supertest");
 const app = require("../app");
+
 const db = require("../db/connection.js");
 const testData = require("../db/data/test-data/index.js");
 const seed = require("../db/seeds/seed");
@@ -68,10 +69,129 @@ describe("GET /api/articles", () => {
         expect(articles).toBeSortedBy("created_at", { descending: true });
       });
   });
+
+  it("should respond with status 200 and accept a topic query which filters articles by specified topic value", () => {
+    return request(app)
+      .get("/api/articles?topic=cats")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeInstanceOf(Array);
+        articles.forEach((article) => {
+          expect(article).toEqual(
+            expect.objectContaining({
+              author: expect.any(String),
+              title: expect.any(String),
+              article_id: expect.any(Number),
+              topic: "cats",
+              created_at: expect.any(String),
+              votes: expect.any(Number),
+              comment_count: expect.any(String),
+            })
+          );
+        });
+      });
+  });
+
+  it("should respond with status 200 and return an empty array if the topic does not exist", () => {
+    return request(app)
+      .get("/api/articles?topic=computer")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toEqual([]);
+      });
+  });
+
+  it("should respond with status 200 and respond with all the articles if topic query is omitted", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeInstanceOf(Array);
+        articles.forEach((article) => {
+          expect(article).toEqual(
+            expect.objectContaining({
+              author: expect.any(String),
+              title: expect.any(String),
+              article_id: expect.any(Number),
+              topic: expect.any(String),
+              created_at: expect.any(String),
+              votes: expect.any(Number),
+              comment_count: expect.any(String),
+            })
+          );
+        });
+      });
+  });
+
+  it("should respond with status 200 and should accept a query which sorts the article by any valid column (defaulting to descending)", () => {
+    return request(app)
+      .get("/api/articles?sort_by=author")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("author", { descending: true });
+      });
+  });
+
+  it("should respond with status 200 and sorted by date if no query is provided (defaulting to descending", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+
+  it('should respond with status 200 and accept an order query set to "asc", sorting the article in ascending order', () => {
+    return request(app)
+      .get("/api/articles?sort_by=author&order=asc")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("author");
+      });
+  });
+
+  it('should respond with status 200 and accept an order query set to "desc", sorting the article in a descending order', () => {
+    return request(app)
+      .get("/api/articles?sort_by=author")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("author", { descending: true });
+      });
+  });
+
+  it("should respond with status 400 non-existent column requested by the client for sorting query", () => {
+    return request(app)
+      .get("/api/articles?sort_by=a")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it("should respond with status 200 and respond with an array of articles if queries are valid", () => {
+    return request(app)
+      .get("/api/articles?topic=cats&sort_by=author&order=asc")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        articles.forEach((article) => {
+          expect(article).toEqual(
+            expect.objectContaining({
+              author: expect.any(String),
+              title: expect.any(String),
+              article_id: expect.any(Number),
+              topic: "cats",
+              created_at: expect.any(String),
+              votes: expect.any(Number),
+              comment_count: expect.any(String),
+            })
+          );
+        });
+      });
+  });
 });
 
 describe("GET /api/articles/:article_id", () => {
-  it("should respond with status 200 and return an article object, with article_id, author, title,  body, topic, created_at and votes", () => {
+  it("should respond with status 200 and return an article object, with article_id, author, title,  body, topic, created_at and votes (comment count also added)", () => {
     const article_id = 1;
     return request(app)
       .get(`/api/articles/${article_id}`)
@@ -85,13 +205,14 @@ describe("GET /api/articles/:article_id", () => {
           topic: "mitch",
           created_at: expect.any(String),
           votes: 100,
+          comment_count: expect.any(String),
         });
       });
   });
 });
 
 describe("GET /api/articles/:article_id/comments", () => {
-  it("should respond with status 200 and return an article object including comment count", () => {
+  it("should respond with status 200 and return an article object", () => {
     const ARTICLE_ID = 1;
     return request(app)
       .get(`/api/articles/${ARTICLE_ID}/comments`)
@@ -400,6 +521,53 @@ describe("GET/api/users", () => {
             })
           );
         });
+      });
+  });
+});
+
+describe("DELETE/api/comments/:comment_id", () => {
+  it("should respond with status 204 and delete the comment requested by the client ", () => {
+    const comment_id = 1;
+    return request(app).delete(`/api/comments/${comment_id}`).expect(204);
+  });
+
+  it("should respond with status 404 and respond with comment_id not found", () => {
+    const comment_id = 9999;
+    return request(app)
+      .delete(`/api/comments/${comment_id}`)
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe(`${comment_id} Not Found In The Database`);
+      });
+  });
+
+  it("should respond with status 400 and return invalid data type requested by the client(string)", () => {
+    const comment_id = "a";
+    return request(app)
+      .delete(`/api/comments/${comment_id}`)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it("should respond with status 400 and return invalid data type requested by the client (float)", () => {
+    const comment_id = 1.2;
+    return request(app)
+      .delete(`/api/comments/${comment_id}`)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it("should respond with status 400 and return invalid data type requested by the client (negative integer)", () => {
+    const comment_id = -1.2;
+    return request(app)
+      .delete(`/api/comments/${comment_id}`)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
       });
   });
 });
