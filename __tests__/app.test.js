@@ -571,3 +571,62 @@ describe("DELETE/api/comments/:comment_id", () => {
       });
   });
 });
+
+describe.only("GET/api/users/:username", () => {
+  it("should respond with status 200 and respond with an object of users requested", () => {
+    const username = "butter_bridge";
+    return request(app)
+      .get(`/api/users/${username}`)
+      .expect(200)
+      .then(({ body: { user } }) => {
+        expect(user).toBeInstanceOf(Object);
+        expect(user).toEqual(
+          expect.objectContaining({
+            username: "butter_bridge",
+            name: expect.any(String),
+            avatar_url: expect.any(String),
+          })
+        );
+      });
+  });
+
+  it("should respond with status 404 and respond with non-existent username in the database", () => {
+    const username = "applepie";
+    return request(app)
+      .get(`/api/users/${username}`)
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Not Found In The Database");
+      });
+  });
+
+  it("should respond with status 400 and respond with invalid data type requested (number) ", () => {
+    const username = 5;
+    return request(app)
+      .get(`/api/users/${username}`)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it("should respond with status 400 and respond with invalid data type requested (float)", () => {
+    const username = 5.1;
+    return request(app)
+      .get(`/api/users/${username}`)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it("should respond with status 400 and respond with invalid data type requested (negative integer)", () => {
+    const username = -5;
+    return request(app)
+      .get(`/api/users/${username}`)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+});
