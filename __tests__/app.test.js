@@ -572,7 +572,7 @@ describe("DELETE/api/comments/:comment_id", () => {
   });
 });
 
-describe.only("GET/api/users/:username", () => {
+describe("GET/api/users/:username", () => {
   it("should respond with status 200 and respond with an object of users requested", () => {
     const username = "butter_bridge";
     return request(app)
@@ -624,6 +624,183 @@ describe.only("GET/api/users/:username", () => {
     const username = -5;
     return request(app)
       .get(`/api/users/${username}`)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+});
+
+describe.only("PATCH/api/comments/:comment_id", () => {
+  it("should respond with status 200 and increase votes for an associated comment by a given amount", () => {
+    const comment_id = 3;
+    const newVote = 50;
+    const inc = { inc_votes: newVote };
+    return request(app)
+      .patch(`/api/comments/${comment_id}`)
+      .send(inc)
+      .expect(200)
+      .then(({ body: { comment } }) => {
+        expect(comment).toBeInstanceOf(Object);
+        expect(comment).toEqual(
+          expect.objectContaining({
+            comment_id: 3,
+            body: expect.any(String),
+            article_id: expect.any(Number),
+            author: expect.any(String),
+            votes: 150,
+            created_at: expect.any(String),
+          })
+        );
+      });
+  });
+
+  it("should respond with status 200 and decrease votes for an associated comment by a given amount", () => {
+    const comment_id = 3;
+    const newVote = -50;
+    const inc = { inc_votes: newVote };
+    return request(app)
+      .patch(`/api/comments/${comment_id}`)
+      .send(inc)
+      .expect(200)
+      .then(({ body: { comment } }) => {
+        expect(comment).toBeInstanceOf(Object);
+        expect(comment).toEqual(
+          expect.objectContaining({
+            comment_id: 3,
+            body: expect.any(String),
+            article_id: expect.any(Number),
+            author: expect.any(String),
+            votes: 50,
+            created_at: expect.any(String),
+          })
+        );
+      });
+  });
+
+  it("should respond with status 404 and return non existent comment requested", () => {
+    const comment_id = 999;
+    const newVote = 6;
+    const inc = { inc_votes: newVote };
+    return request(app)
+      .patch(`/api/comments/${comment_id}`)
+      .send(inc)
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Not Found In The Database");
+      });
+  });
+
+  it("should respond with status 400 and return invalid data type requested(string)", () => {
+    const comment_id = "cat";
+    const newVote = 5;
+    const inc = { inc_votes: newVote };
+    return request(app)
+      .patch(`/api/comments/${comment_id}`)
+      .send(inc)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it("should respond with status 400 and return invalid data type requested (float)", () => {
+    const comment_id = 5.5;
+    const newVote = 10;
+    const inc = { inc_votes: newVote };
+    return request(app)
+      .patch(`/api/comments/${comment_id}`)
+      .send(inc)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it("should respond with status 400 and return invalid data type requested (negative integer)", () => {
+    const comment_id = -9;
+    const newVote = 5;
+    const inc = { inc_votes: newVote };
+    return request(app)
+      .patch(`/api/comments/${comment_id}`)
+      .send(inc)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it("should respond with status 400 and return invalid data type requested during voting (string) ", () => {
+    const comment_id = 3;
+    const newVote = "cat";
+    const inc = { inc_votes: newVote };
+    return request(app)
+      .patch(`/api/comments/${comment_id}`)
+      .send(inc)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it("should respond with status 400 and return invalid data type requested during voting (float)", () => {
+    const comment_id = 3;
+    const newVote = 5.5;
+    const inc = { inc_votes: newVote };
+    return request(app)
+      .patch(`/api/comments/${comment_id}`)
+      .send(inc)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it('should respond with status 400 and return missing key "inc_votes" during voting', () => {
+    const comment_id = 3;
+    const inc = { noVoteRequested: 50 };
+    return request(app)
+      .patch(`/api/comments/${comment_id}`)
+      .send(inc)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it('should respond with status 400 and return missing body "inc_votes" during voting', () => {
+    const comment_id = 3;
+    const newVote = {};
+    const inc = { inc_votes: newVote };
+    return request(app)
+      .patch(`/api/comments/${comment_id}`)
+      .send(inc)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it('should respond with status 400 and return invalid key "inc_votes" type (string)', () => {
+    const comment_id = 3;
+    const newVote = "cat";
+    const inc = { inc_votes: newVote };
+    return request(app)
+      .patch(`/api/comments/${comment_id}`)
+      .send(inc)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it('should respond with status 400 and return invalid key "inc_Votes" tyoe (float)', () => {
+    const comment_id = 3;
+    const newVote = 5.5;
+    const inc = { inc_votes: newVote };
+    return request(app)
+      .patch(`/api/comments/${comment_id}`)
+      .send(inc)
       .expect(400)
       .then(({ body: { msg } }) => {
         expect(msg).toBe("Bad request");
