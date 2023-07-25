@@ -4,6 +4,7 @@ const {
   selectArticleIdByComment,
   insertComment,
   updateArticles,
+  insertArticles,
 } = require("../models/articles.model");
 
 exports.getArticles = (req, res, next) => {

@@ -13,6 +13,7 @@ const {
   getArticleIdByComment,
   postComment,
   patchArticlesById,
+  postArticles,
 } = require("./controllers/articles.controller");
 
 const {
@@ -22,9 +23,15 @@ const {
   handleCustomErr,
 } = require("./errors/errors.js");
 
-const { getUsers } = require("./controllers/users.controller");
+const {
+  getUsers,
+  getUsersByUserName,
+} = require("./controllers/users.controller");
 
-const { deleteComments } = require("./controllers/comments.controller");
+const {
+  deleteComments,
+  patchComments,
+} = require("./controllers/comments.controller");
 
 const endpoints = require("./endpoints.json");
 
@@ -34,9 +41,15 @@ app.get("/api", (req, res) => {
   res.status(200).send(endpoints);
 });
 
+app.get("/api/users/:username", getUsersByUserName);
+
+app.patch("/api/comments/:comment_id", patchComments);
+
 app.get("/api/topics", getTopics);
 
 app.get("/api/articles", getArticles);
+
+app.post("/api/articles", postArticles);
 
 app.get("/api/articles/:article_id", getArticleById);
 

@@ -10,7 +10,7 @@
     }
   },
   "GET /api/articles": {
-    "description": "serves an array of all topics",
+    "description": "serves an array of all articles",
     "queries": ["author", "topic", "sort_by", "order"],
     "exampleResponse": {
       "articles": [
@@ -20,6 +20,77 @@
           "author": "weegembump",
           "body": "Text from the article..",
           "created_at": 1527695953341
+        }
+      ]
+    }
+  },
+  "GET /api/articles/:articles_id": {
+    "description": "serves an object of a requested article",
+    "exampleResponse": {
+      "article": {
+        "articles_id": 4,
+        "author": "jessjelly",
+        "title": "Making sense of Redux",
+        "body": "When I first started learning React, I remember reading lots of articles about the different technologies associated with it. In particular, this one article stood out. It mentions how confusing the ecosystem is, and how developers often feel they have to know ALL of the ecosystem before using React. And as someone who’s used React daily for the past 8 months or so, I can definitely say that I’m still barely scratching the surface in terms of understanding how the entire ecosystem works! But my time spent using React has given me some insight into when and why it might be appropriate to use another technology — Redux (a variant of the Flux architecture).",
+        "created_at": "2020-09-11T21:12:00.000Z",
+        "votes": 0,
+        "comment_count": "9"
+      }
+    }
+  },
+  "PATCH /api/articles/:article_id": {
+    "description": "serves an object of an updated article by the vote count",
+    "exampleResponse": {
+      "article": {
+        "articles_id": 6,
+        "author": "grumpy19",
+        "title": "JavaScript’s Apply, Call, and Bind Methods are Essential for JavaScript Professionals",
+        "body": "Functions are objects in JavaScript, as you should know by now, if you have read any of the prerequisite articles. And as objects, functions have methods, including the powerful Apply, Call, and Bind methods. On the one hand, Apply and Call are nearly identical and are frequently used in JavaScript for borrowing methods and for setting the this value explicitly. We also use Apply for variable-arity functions; you will learn more about this in a bit.",
+        "topic": "coding",
+        "created_at": "2020-11-11T15:09:00.000Z",
+        "votes": 8,
+        "comment_count": "11"
+      }
+    }
+  },
+  "GET /api/articles/:articles_id/comments": {
+    "description": "serves an array of comments affiliated with the particular article",
+    "exampleResponse": {
+      "comments": [
+        {
+          "comment_id": 82,
+          "votes": -4,
+          "created_at": "2020-08-19T08:08:00.000Z",
+          "author": "happyamy2016",
+          "body": "Facilis ipsam illum aut voluptatibus. Repudiandae cupiditate quo fugiat earum est ut autem repudiandae excepturi. Fuga voluptatem iusto ut. Nulla sequi culpa qui eaque. Architecto non veniam distinctio."
+        },
+        {
+          "comment_id": 12,
+          "votes": 15,
+          "created_at": "2020-06-19T06:00:00.000Z",
+          "author": "happyamy2016",
+          "body": "Maiores sed dolor. Consequatur quasi itaque culpa. Tempora ut autem est ad est voluptatem officiis. Ut sequi quaerat qui nam sunt."
+        },
+        {
+          "comment_id": 161,
+          "votes": 18,
+          "created_at": "2020-04-01T23:01:00.000Z",
+          "author": "weegembump",
+          "body": "Repellendus eos consequatur atque autem voluptatem et neque facere quas. Illum quaerat numquam labore dolorem harum dolores veritatis. Animi ex dolorum amet. Atque quia quasi labore sed molestiae."
+        },
+        {
+          "comment_id": 298,
+          "votes": 13,
+          "created_at": "2020-03-14T14:02:00.000Z",
+          "author": "tickle122",
+          "body": "Et non quia sunt dolorem vero sint optio perspiciatis. Assumenda dolor est aut cum amet assumenda autem. Iusto earum vero animi nihil error non placeat."
+        },
+        {
+          "comment_id": 203,
+          "votes": -1,
+          "created_at": "2020-01-09T19:17:00.000Z",
+          "author": "tickle122",
+          "body": "Fugiat voluptatibus numquam aut aut sit quae magni qui. Ipsam sed reprehenderit aliquid quibusdam. Id ducimus quisquam modi sed repellendus quia omnis aliquam et. Qui blanditiis voluptate doloremque esse qui sint deserunt voluptas. Et rerum et rerum quia repudiandae vero omnis voluptas sit. Ipsam eos fugiat omnis rem quia sequi omnis reprehenderit minus."
         }
       ]
     }

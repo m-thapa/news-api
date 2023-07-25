@@ -631,7 +631,7 @@ describe("GET/api/users/:username", () => {
   });
 });
 
-describe.only("PATCH/api/comments/:comment_id", () => {
+describe("PATCH/api/comments/:comment_id", () => {
   it("should respond with status 200 and increase votes for an associated comment by a given amount", () => {
     const comment_id = 3;
     const newVote = 50;
@@ -801,6 +801,176 @@ describe.only("PATCH/api/comments/:comment_id", () => {
     return request(app)
       .patch(`/api/comments/${comment_id}`)
       .send(inc)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+});
+
+describe.only("POST/api/articles", () => {
+  it("should respond with status 201 and return a newly added article", () => {
+    const newArticle = {
+      author: "butter_bridge",
+      title: "Bluetooth devices",
+      body: "Bluetooth 5.0 finally stable for windows ? ",
+      topic: "mitch",
+    };
+    return request(app)
+      .post(`/api/articles`)
+      .send(newArticle)
+      .expect(201)
+      .then(({ body: { article } }) => {
+        expect(article).toBeInstanceOf(Object);
+        expect(article).toEqual(
+          expect.objectContaining({
+            author: "butter_bridge",
+            title: "Bluetooth devices",
+            body: "Bluetooth 5.0 finally stable for windows ? ",
+            topic: "mitch",
+            article_id: 13,
+            votes: expect.any(Number),
+            created_at: expect.any(String),
+            comment_count: expect.any(String),
+          })
+        );
+      });
+  });
+
+  it("should respond with status 404 and return non-existent author in the database", () => {
+    const newArticle = {
+      author: "eclair",
+      title: "Bluetooth devices",
+      body: "Bluetooth 5.0 finally stable for windows ? ",
+      topic: "mitch",
+    };
+    return request(app)
+      .post(`/api/articles`)
+      .send(newArticle)
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Not Found In The Database");
+      });
+  });
+
+  it("should respond with status 404 and return non-existent topic in the database", () => {
+    const newArticle = {
+      author: "butter_bridge",
+      title: "Bluetooth devices",
+      body: "Bluetooth 5.0 finally stable for windows ? ",
+      topic: "eclair",
+    };
+    return request(app)
+      .post(`/api/articles`)
+      .send(newArticle)
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Not Found In The Database");
+      });
+  });
+
+  it("should respond with status 400 and return invalid author data type requested (number)", () => {
+    const newArticle = {
+      author: 1,
+      title: "Bluetooth devices",
+      body: "Bluetooth 5.0 finally stable for windows ? ",
+      topic: "mitch",
+    };
+    return request(app)
+      .post(`/api/articles`)
+      .send(newArticle)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it("should respond with status 400 and return invalid body data type requested (number)", () => {
+    const newArticle = {
+      author: "butter_bridge",
+      title: "Bluetooth devices",
+      body: 1,
+      topic: "mitch",
+    };
+    return request(app)
+      .post(`/api/articles`)
+      .send(newArticle)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it("should respond with status 400 and return invalid title data type requested (number)", () => {
+    const newArticle = {
+      author: "butter_bridge",
+      title: 1,
+      body: "Bluetooth 5.0 finally stable for windows ? ",
+      topic: "mitch",
+    };
+    return request(app)
+      .post(`/api/articles`)
+      .send(newArticle)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it("should respond with status 400 and return missing author data type  ", () => {
+    const newArticle = {
+      title: "Bluetooth devices",
+      body: "Bluetooth 5.0 finally stable for windows ? ",
+      topic: "mitch",
+    };
+    return request(app)
+      .post(`/api/articles`)
+      .send(newArticle)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it("should respond with status 400 and return missing title data type ", () => {
+    const newArticle = {
+      author: "butter_bridge",
+      body: "Bluetooth 5.0 finally stable for windows ? ",
+      topic: "mitch",
+    };
+    return request(app)
+      .post(`/api/articles`)
+      .send(newArticle)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it("should respond with status 400 and return missing body data type", () => {
+    const newArticle = {
+      author: "butter_bridge",
+      title: "Bluetooth devices",
+      topic: "mitch",
+    };
+    return request(app)
+      .post(`/api/articles`)
+      .send(newArticle)
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it("should respond with status 400 and return missing topic data type", () => {
+    const newArticle = {
+      author: "butter_bridge",
+      title: "Bluetooth devices",
+      body: "Bluetooth 5.0 finally stable for windows ? ",
+    };
+    return request(app)
+      .post(`/api/articles`)
+      .send(newArticle)
       .expect(400)
       .then(({ body: { msg } }) => {
         expect(msg).toBe("Bad request");
