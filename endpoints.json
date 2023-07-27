@@ -94,5 +94,19 @@
         }
       ]
     }
+  },
+  "POST /api/articles/:articles_id/comments": {
+    "description": "serves recently posted comments",
+    "exampleResponse": {
+      "comments": [
+        {
+          "comment_id": 92,
+          "votes": 7,
+          "created_at": "2020-11-11T15:09:00.000Z",
+          "author": "weegembump",
+          "body": "Loren supim"
+        }
+      ]
+    }
   }
 }
