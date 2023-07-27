@@ -282,7 +282,7 @@ describe("GET /api/articles/:article_id/comments", () => {
   });
 });
 
-describe("POST /api/articles/:article_id", () => {
+describe("POST /api/articles/:article_id/comments", () => {
   it("should respond with status 201 and return an object in the form { inc_votes: newVote } with the updated article", () => {
     const article_id = 2;
     const newComment = {
@@ -808,7 +808,7 @@ describe("PATCH/api/comments/:comment_id", () => {
   });
 });
 
-describe.only("POST/api/articles", () => {
+describe("POST/api/articles", () => {
   it("should respond with status 201 and return a newly added article", () => {
     const newArticle = {
       author: "butter_bridge",
