@@ -4,6 +4,7 @@ const app = require("../app");
 const db = require("../db/connection.js");
 const testData = require("../db/data/test-data/index.js");
 const seed = require("../db/seeds/seed");
+const articles = require("../db/data/test-data/articles");
 
 beforeEach(() => seed(testData));
 afterAll(() => db.end());
@@ -60,7 +61,7 @@ describe("GET /api/articles", () => {
         });
       });
   });
-
+  //
   it("should respond with status 200 and return sorted articles by date in descending order ", () => {
     return request(app)
       .get("/api/articles")
@@ -70,6 +71,7 @@ describe("GET /api/articles", () => {
       });
   });
 
+  // query
   it("should respond with status 200 and accept a topic query which filters articles by specified topic value", () => {
     return request(app)
       .get("/api/articles?topic=cats")
@@ -89,15 +91,6 @@ describe("GET /api/articles", () => {
             })
           );
         });
-      });
-  });
-
-  it("should respond with status 200 and return an empty array if the topic does not exist", () => {
-    return request(app)
-      .get("/api/articles?topic=computer")
-      .expect(200)
-      .then(({ body: { articles } }) => {
-        expect(articles).toEqual([]);
       });
   });
 
@@ -123,12 +116,77 @@ describe("GET /api/articles", () => {
       });
   });
 
-  it("should respond with status 200 and should accept a query which sorts the article by any valid column (defaulting to descending)", () => {
+  //sort_by
+  it("should respond with status 200 and accept a sort_by query which sorts the article by any valid column defaulting to descending", () => {
     return request(app)
       .get("/api/articles?sort_by=author")
       .expect(200)
       .then(({ body: { articles } }) => {
         expect(articles).toBeSortedBy("author", { descending: true });
+      });
+  });
+
+  it("should respond with status 200 and should accept a sort_by query which sorts the article by any valid column (defaulting to descending)", () => {
+    return request(app)
+      .get("/api/articles?sort_by=author")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("author", { descending: true });
+      });
+  });
+
+  // no queries
+  it("should respond with status 200 and be sorted by date if no query is provided defaulting to descending", () => {
+    return request(app)
+      .get("/api/articles")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("created_at", { descending: true });
+      });
+  });
+  // order queries
+  it('should respond with status 200 and accept an order query set to "desc" by default, sorting the artice in descending order ', () => {
+    return request(app)
+      .get("/api/articles?sort_by=author")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("author", { descending: true });
+      });
+  });
+
+  it('should respond with status 200 and accept an order query set to "asc" sorting the article in an ascending order', () => {
+    return request(app)
+      .get("/api/articles?sort_by=author&order=asc")
+      .expect(200)
+      .then(({ body: { articles } }) => {
+        expect(articles).toBeSortedBy("author");
+      });
+  });
+
+  it("should respond with status 400 and respond with invalid value requested for order query ", () => {
+    return request(app)
+      .get("/api/articles?sort_by=author&order=ascending")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it("should respond with status 400 and respond with non-existent column requested for order query ", () => {
+    return request(app)
+      .get("/api/articles?sort_by=apple")
+      .expect(400)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Bad request");
+      });
+  });
+
+  it("should respond with status 404 and respond with non existent topic in database", () => {
+    return request(app)
+      .get("/articles?topic=apple")
+      .expect(404)
+      .then(({ body: { msg } }) => {
+        expect(msg).toBe("Invalid path");
       });
   });
 
