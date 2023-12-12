@@ -126,12 +126,12 @@ describe("GET /api/articles", () => {
       });
   });
 
-  it("should respond with status 200 and should accept a sort_by query which sorts the article by any valid column (defaulting to descending)", () => {
+  it("should respond with status 200 and should accept a sort_by date query which sorts the article by date if no query is provided", () => {
     return request(app)
-      .get("/api/articles?sort_by=author")
+      .get("/api/articles")
       .expect(200)
       .then(({ body: { articles } }) => {
-        expect(articles).toBeSortedBy("author", { descending: true });
+        expect(articles).toBeSortedBy("created_at", { descending: true });
       });
   });
 
